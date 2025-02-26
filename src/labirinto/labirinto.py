@@ -1,6 +1,7 @@
 import random
 import pygame as pg
 import calc
+from labirinto.celula import Celula
 
 
 class Labirinto:
@@ -12,6 +13,8 @@ class Labirinto:
         self.surface = pg.Surface(self.tamanho)
         self.tamanho_scale = (600, 600)
         self.scale = pg.transform.scale(self.surface, self.tamanho_scale)
+        self.celulas = set()
+        self.raiz = None
         self.draw()
 
     @staticmethod
@@ -20,7 +23,7 @@ class Labirinto:
         matriz[0][0] = 255
         matriz[width - 1][height - 1] = -1
         return Labirinto(matriz)
-    
+
     @staticmethod
     def from_file(file):
         with open(file) as f:
@@ -29,6 +32,26 @@ class Labirinto:
 
     def __getitem__(self, index):
         return self.matriz[index]
+
+    def get_conexos(self, x, y):
+        conexos = []
+        if x < self.width - 1:
+            conexos.append((x + 1, y))
+        if x < self.width - 1 and y < self.height - 1:
+            conexos.append((x + 1, y + 1))
+        if x < self.width - 1 and y > 0:
+            conexos.append((x + 1, y - 1))
+        if x > 0:
+            conexos.append((x - 1, y))
+        if x > 0 and y < self.height - 1:
+            conexos.append((x - 1, y + 1))
+        if x > 0 and y > 0:
+            conexos.append((x - 1, y - 1))
+        if y < self.height - 1:
+            conexos.append((x, y + 1))
+        if y > 0:
+            conexos.append((x, y - 1))
+        return conexos
 
     def draw(self):
         pa = pg.PixelArray(self.surface)
@@ -48,3 +71,10 @@ class Labirinto:
     def render(self, display):
         display.blit(self.scale, calc.center_pos(display, self.scale))
         # display.blit(self.surface,self.surface.get_rect(center=display.get_rect().center))
+
+    def get_raiz(self):
+        if not self.raiz:
+            c = Celula(0,0,self)
+            self.raiz = c
+            self.celulas.add(c)
+        return c
