@@ -46,15 +46,15 @@ class ProgramaLabirinto(c.Programa):
 
         self.resultado = c.Text("", (980, 10), 15)
 
-        self.compoenentes.append(botaoNovoLab)
-        self.compoenentes.append(botaoCarregarLab)
-        self.compoenentes.append(botaoIniciar)
-        self.compoenentes.append(botaoIniciarA)
-        self.compoenentes.append(botaoParar)
-        self.compoenentes.append(self.text_tipo_distancia)
-        self.compoenentes.append(botaoDistanciaEuclidiana)
-        self.compoenentes.append(botaoDistanciaManhattan)
-        self.compoenentes.append(self.resultado)
+        self.componentes.append(botaoNovoLab)
+        self.componentes.append(botaoCarregarLab)
+        self.componentes.append(botaoIniciar)
+        self.componentes.append(botaoIniciarA)
+        self.componentes.append(botaoParar)
+        self.componentes.append(self.text_tipo_distancia)
+        self.componentes.append(botaoDistanciaEuclidiana)
+        self.componentes.append(botaoDistanciaManhattan)
+        self.componentes.append(self.resultado)
 
     def append_log(self, texto):
         self.log_resultado += texto

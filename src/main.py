@@ -25,10 +25,10 @@ def abrir_programa(nome):
         programa = home
 
 
-home.compoenentes.append(
+home.componentes.append(
     c.Botao("Labirinto", 10, 50, acao=lambda: abrir_programa("Labirinto"))
 )
-home.compoenentes.append(
+home.componentes.append(
     c.Botao("NRainhas", 200, 50, acao=lambda: abrir_programa("NRainhas"))
 )
 
