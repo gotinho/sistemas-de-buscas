@@ -1,57 +1,13 @@
 import pygame as pg
-import threading
+import labirinto as lb
 
-from fps import FPS
-from labirinto.labirinto import Labirinto
-from labirinto.robo import Robo
-from botao import Botao
+import compoentes as c
 
 pg.init()
 display = pg.display.set_mode((1280, 720))
-fps = FPS()
+fps = c.FPS()
 
-labirinto = Labirinto.from_file("data/IA_2_labirinto256.txt")
-robo = Robo(labirinto)
-robo_iniciado = False
-
-
-def novo():
-    global labirinto, robo
-    labirinto = Labirinto.from_aleatorio(100, 100)
-    robo = Robo(labirinto)
-
-
-def iniciar():
-    global robo, robo_iniciado, running
-    robo_iniciado = True
-    counter = 0
-    while counter < 10000 and not robo.busca_gulosa() and robo_iniciado and running:
-        counter += 1
-
-    print(f"robo {counter} buscas")
-    print(f"robo {len(robo.caminho)} passos")
-    print(f"robo {robo.caminho[0]} inicio")
-    print(f"robo {robo.caminho[-1]} fim")
-
-def printCelula(c):
-    print(c)
-    for f in c.filhos:
-        printCelula(f)
-
-def iniciar_thread():
-    #threading.Thread(target=iniciar).start()
-    c = labirinto.get_raiz()
-    printCelula(c)
-    pass
-
-def parar():
-    global robo_iniciado
-    robo_iniciado = False
-
-
-botaoNovoLab = Botao("Novo Labirinto", 10, 30, novo)
-botaoIniciar = Botao("Iniciar", 10, 10 + botaoNovoLab.rect.bottom, iniciar_thread)
-botaoParar = Botao("Parar", 10, 10 + botaoIniciar.rect.bottom, parar)
+programa =  lb.ProgramaLabirinto()
 
 running = True
 while running:
@@ -64,17 +20,8 @@ while running:
 
     display.fill("black")
 
-    labirinto.render(display)
-    robo.render(display)
-
-    botaoNovoLab.update(events)
-    botaoNovoLab.render(display)
-
-    botaoIniciar.update(events)
-    botaoIniciar.render(display)
-
-    botaoParar.update(events)
-    botaoParar.render(display)
+    programa.update(events)
+    programa.render(display)
 
     fps.update()
     fps.render(display)

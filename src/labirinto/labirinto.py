@@ -3,18 +3,24 @@ import pygame as pg
 import calc
 from labirinto.celula import Celula
 
+def achar_destino(matriz):
+    for x, coluna in enumerate(matriz):
+        for y, valor in enumerate(coluna):
+            if(valor == -1):
+                return (x,y)
 
 class Labirinto:
     def __init__(self, matriz):
         self.matriz = matriz
+        self.destino = achar_destino(matriz)
         self.width = len(matriz)
         self.height = len(matriz[0])
-        self.tamanho = (self.width, self.height)
-        self.surface = pg.Surface(self.tamanho)
-        self.tamanho_scale = (600, 600)
-        self.scale = pg.transform.scale(self.surface, self.tamanho_scale)
-        self.celulas = set()
+        # self.celulas = set()
         self.raiz = None
+        self.tamanho = (self.width, self.height)
+        self.tamanho_scale = (600, 600)
+        self.surface = pg.Surface(self.tamanho)
+        self.scale = pg.transform.scale(self.surface, self.tamanho_scale)
         self.draw()
 
     @staticmethod
@@ -28,7 +34,7 @@ class Labirinto:
     def from_file(file):
         with open(file) as f:
             matriz = [[int(celula) for celula in linha.split()] for linha in f]
-        return Labirinto(matriz)
+            return Labirinto(matriz)
 
     def __getitem__(self, index):
         return self.matriz[index]
@@ -74,7 +80,6 @@ class Labirinto:
 
     def get_raiz(self):
         if not self.raiz:
-            c = Celula(0,0,self)
-            self.raiz = c
-            self.celulas.add(c)
-        return c
+            self.raiz = Celula(0,0,self)
+            # self.celulas.add(c)
+        return self.raiz

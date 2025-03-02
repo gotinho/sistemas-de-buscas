@@ -7,7 +7,12 @@ def center_pos(surfA, surfB):
     return (x, y)
 
 
-def distancia_euclidiana(x2, x1, y2, y1):
+def distancia_euclidiana(p1, p2):
     """Calcula a Distância Euclidiana (L2 Norm) entre dois pontos"""
-    d = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    d = math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+    return d
+
+def distancia_manhattan(p1, p2):
+    """Calcula a Distância Manhattan entre dois pontos"""
+    d = abs(p2[0] - p1[0]) + abs(p2[1] - p1[1])
     return d
