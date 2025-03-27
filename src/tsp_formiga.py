@@ -1,8 +1,10 @@
 import gzip
 import random
+import time
 
 # import io
 import numpy as np
+import concurrent.futures
 
 
 def calcula_distancia(p1, p2):
@@ -22,14 +24,6 @@ def calcula_distancias(coordenadas):
         ]
         for i in range(tamanho)
     ]
-    # for key, value in coordenadas.items():
-    #     distancias_cidades = {}
-    #     for key2, value2 in coordenadas.items():
-    #         distancia = calcula_distancia(value, value2)
-    #         distancias_cidades[key2] = distancia
-    #     distancias[key] = distancias
-    # return distancias
-
     return np.array(distancias)
 
 
@@ -44,85 +38,6 @@ def calcula_transicao(feromonio, heuristica, peso_feromonio, peso_heuristica):
     return pow(feromonio, peso_feromonio) * pow(heuristica, peso_heuristica)
 
 
-# class Formiga:
-# def __init__(self, inicial):
-#     self.visitadas = [inicial]
-#     self.custo = 0
-
-# def percorrer_cidades(
-#     self,
-#     matriz_heuristica,
-#     matriz_feromonio,
-#     peso_heuristica,
-#     peso_feromonio,
-#     atlas,
-# ):
-#     posicao = self.visitadas[0]
-#     disponiveis = [i for i in range(len(matriz_heuristica))]
-#     disponiveis.remove(posicao)
-#     while len(disponiveis) > 0:
-#         transicao = [
-#             calcula_transicao(
-#                 matriz_feromonio[posicao][j],
-#                 matriz_heuristica[posicao][j],
-#                 peso_feromonio,
-#                 peso_heuristica,
-#             )
-#             for j in disponiveis
-#         ]
-#         soma = sum(transicao)
-#         if soma == 0:
-#             print("soma 0 ", disponiveis)
-#         maior = -1
-#         maior_probabilidade = -1
-#         for j in disponiveis:
-#             probabilidade = (
-#                 calcula_transicao(
-#                     matriz_feromonio[posicao][j],
-#                     matriz_heuristica[posicao][j],
-#                     peso_feromonio,
-#                     peso_heuristica,
-#                 )
-#                 / soma
-#             )
-#             if probabilidade < 0:
-#                 print("menor", probabilidade)
-#             if probabilidade > maior_probabilidade:
-#                 maior = j
-#                 maior_probabilidade = probabilidade
-#         posicao = maior
-#         if posicao not in disponiveis:
-#             print("nnn", posicao)
-#             print("nnn", disponiveis)
-#         disponiveis.remove(posicao)
-#         self.visitadas.append(posicao)
-#     self.calcular_custo(atlas)
-
-# def calcular_custo(self, atlas):
-#     for i in range(len(self.visitadas)):
-#         p1 = self.visitadas[i] + 1
-#         if i < len(self.visitadas) - 1:
-#             p2 = self.visitadas[i + 1] + 1
-#             self.custo += atlas[p1][p2]
-#         else:
-#             p2 = self.visitadas[0] + 1
-#             self.custo += atlas[p1][p2]
-
-# def reforco_feromonio(self, nivel_feromonio, matriz_feromonio):
-#     for i in range(len(self.visitadas)):
-#         p1 = self.visitadas[i]
-#         if i < len(self.visitadas) - 1:
-#             p2 = self.visitadas[i + 1]
-#             matriz_feromonio[p1][p2] = matriz_feromonio[p1][p2] + nivel_feromonio
-#         else:
-#             p2 = self.visitadas[0] + 1
-#             matriz_feromonio[p1][p2] = matriz_feromonio[p1][p2] + nivel_feromonio
-#     return matriz_feromonio
-
-# def __lt__(self, outro):
-#     return self.custo < outro.custo
-
-
 class Formiga:
     def __init__(self):
         self.visitadas = []
@@ -131,10 +46,14 @@ class Formiga:
     def viajar(self, inicio, heuristica, feromonio, ph, pf, distancias):
         posicao = inicio
         transicao = pow(feromonio, pf) * pow(heuristica, ph)
-        locais = np.arange(len(distancias))
+        # locais = np.arange(len(distancias))
+        locais = [ i for i in range(len(distancias))]
 
-        while locais.size > 1:
-            locais = np.delete(locais, np.where(locais == posicao))
+        inicio_calc = time.time()
+        # while locais.size > 1:
+        while len(locais) > 1:
+            # locais = np.delete(locais, np.where(locais == posicao))
+            locais.remove(posicao)
             self.visitadas.append(posicao)
             maior = 0
             proximo = -1
@@ -146,11 +65,34 @@ class Formiga:
                     maior = probabilidade
                     proximo = j
             posicao = locais[proximo]
+        fim_calc = time.time()
+        print("Tempo calc",(fim_calc - inicio_calc))
         self.visitadas.append(locais[0])
 
-        ##
+        ## Custo
+        for i in range(len(self.visitadas)):
+            j = i + 1
+            if i == len(self.visitadas) - 1:
+                j = 0
 
-        pass
+            pi = self.visitadas[i]
+            pj = self.visitadas[j]
+            self.custo += distancias[pi][pj]
+        print("foi")
+
+
+    def reforcar_feromonio(self, matriz_feromonio):
+        reforco = 1 / self.custo
+        for i in range(len(self.visitadas)):
+            j = i + 1
+            if i == len(self.visitadas) - 1:
+                j = 0
+            pi = self.visitadas[i]
+            pj = self.visitadas[j]
+            matriz_feromonio[pi, pj] += reforco
+
+    def __lt__(self, outro):
+        return self.custo < outro.custo
 
 
 def ler_arquivo_tsp_gz(caminho_arquivo):
@@ -203,6 +145,7 @@ def ler_arquivo_tsp_gz(caminho_arquivo):
 
 
 def main():
+    inicio_programa = time.time()
     caminho_do_arquivo = "data/ali535.tsp.gz"  # Substitua pelo caminho do seu arquivo
     # caminho_do_arquivo = "data/a280.tsp.gz"  # Substitua pelo caminho do seu arquivo
     dados = ler_arquivo_tsp_gz(caminho_do_arquivo)
@@ -214,8 +157,8 @@ def main():
         dimensao = dados["dimensao"]
         distancias = calcula_distancias(dados["coordenadas"])
 
-        n_formigas = 50
-        n_interacoes = 5
+        n_formigas = dimensao
+        n_interacoes = 1
         peso_feromonio = 1
         peso_heuristica = 2
         taxa_evaporacao = 0.5
@@ -230,34 +173,16 @@ def main():
             ]
         )
 
-        # for _ in range(n_interacoes):
-        #     formigas = criar_formigas(dimensao, n_formigas)
-        #     for f in formigas:
-        #         f.percorrer_cidades(
-        #             matriz_heuristica,
-        #             matriz_feromonio,
-        #             peso_heuristica,
-        #             peso_feromonio,
-        #             distancias,
-        #         )
-        #     formigas.sort()
-        #     melhor_rota = formigas[0]
-        #     custo_total = melhor_rota.custo
-        #     print(custo_total)
-        #     print(len(melhor_rota.visitadas))
-        #     nivel_feromonio = 1 / custo_total
-        #     matriz_feromonio = matriz_feromonio * taxa_evaporacao
-        #     matriz_feromonio = melhor_rota.reforco_feromonio(
-        #         nivel_feromonio, matriz_feromonio
-        #     )
-
+        rota = None
         for p in range(n_interacoes):
-            print("Interacao",p)
+            print("Interacao", p)
+            inicio_interacao = time.time()
             formigas = []
+            pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
             for i in random.sample(range(dimensao), k=n_formigas):
-                print("formiga",len(formigas))
                 f = Formiga()
-                f.viajar(
+                pool.submit(
+                    f.viajar,
                     i,
                     matriz_heuristica,
                     matriz_feromonio,
@@ -265,8 +190,31 @@ def main():
                     peso_feromonio,
                     distancias,
                 )
+                # f.viajar(
+                #     i,
+                #     matriz_heuristica,
+                #     matriz_feromonio,
+                #     peso_heuristica,
+                #     peso_feromonio,
+                #     distancias,
+                # )
                 formigas.append(f)
-
+            pool.shutdown(wait=True)
+            formigas.sort()
+            melhor_rota = formigas[0]
+            matriz_feromonio = matriz_feromonio * taxa_evaporacao
+            melhor_rota.reforcar_feromonio(matriz_feromonio)
+            print(matriz_feromonio)
+            print(melhor_rota.custo)
+            if rota is None:
+                rota = melhor_rota
+            elif rota.custo > melhor_rota.custo:
+                rota = melhor_rota
+            fim_interacao = time.time()
+            print("Tempo interacao", (fim_interacao - inicio_interacao))
+        fim_programa = time.time()
+        print("Tempo Total Programa", (fim_programa - inicio_programa))
+        print("Custo Final", rota.custo)
         print("Fim")
 
 
